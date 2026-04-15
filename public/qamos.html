@@ -4,338 +4,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>القاموس الشامل - نظام الصفحات</title>
+    <title>القاموس الشامل</title>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         🔧 ضع هنا بيانات مشروعك من Supabase → Settings → API
+    ═══════════════════════════════════════════════════════════ -->
+    <script>
+        const SUPABASE_URL  = 'https://uqeqtqefcpxhaoggywro.supabase.co';    // ← غيّر هذا
+        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxZXF0cWVmY3B4aGFvZ2d5d3JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzYwMTEsImV4cCI6MjA5MTg1MjAxMX0.00U5HDjQ4AfSf2B4lGIfKvq4wEpE9BJYf_giraJNikw'; // ← غيّر هذا
+    </script>
+    <!-- ══════════════════════════════════════════════════════════ -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         :root {
             --primary-color: #2c3e50;
-            --accent-color: #3498db;
-            --bg-color: #f4f7f6;
-            --saved-color: #e8f5e9;
+            --accent-color:  #3498db;
+            --bg-color:      #f4f7f6;
+            --saved-color:   #e8f5e9;
         }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            text-align: center;
-            color: var(--primary-color);
-        }
-
-        .search-box {
-            width: 100%;
-            padding: 12px 20px;
-            margin: 20px 0;
-            border: 2px solid #ddd;
-            border-radius: 25px;
-            font-size: 18px;
-            outline: none;
-            box-sizing: border-box;
-        }
-
-        .dictionary-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .dictionary-table th,
-        .dictionary-table td {
-            text-align: right;
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .dictionary-table th {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        .is-saved {
-            background-color: var(--saved-color) !important;
-        }
-
-        .word-en {
-            font-weight: bold;
-            color: var(--accent-color);
-            direction: ltr;
-            display: inline-block;
-        }
-
-        /* Pagination */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 20px;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .pagination button {
-            padding: 8px 16px;
-            border: 1px solid var(--accent-color);
-            background: white;
-            color: var(--accent-color);
-            border-radius: 5px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .pagination button:hover:not(:disabled) {
-            background: var(--accent-color);
-            color: white;
-        }
-
-        .pagination button:disabled {
-            border-color: #ccc;
-            color: #ccc;
-            cursor: not-allowed;
-        }
-
-        .pagination .current-info {
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        /* Sync status indicator */
-        #sync-status {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            padding: 8px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: bold;
-            transition: opacity 0.5s;
-            opacity: 0;
-            pointer-events: none;
-            z-index: 999;
-        }
-
-        #sync-status.saving {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffc107;
-            opacity: 1;
-        }
-
-        #sync-status.saved {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #28a745;
-            opacity: 1;
-        }
-
-        #sync-status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #dc3545;
-            opacity: 1;
-        }
+        body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:var(--bg-color); margin:0; padding:20px; }
+        .container { max-width:900px; margin:0 auto; background:white; padding:30px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,.1); }
+        h1 { text-align:center; color:var(--primary-color); }
+        .search-box { width:100%; padding:12px 20px; margin:20px 0; border:2px solid #ddd; border-radius:25px; font-size:18px; outline:none; box-sizing:border-box; }
+        .dictionary-table { width:100%; border-collapse:collapse; }
+        .dictionary-table th,.dictionary-table td { text-align:right; padding:12px; border-bottom:1px solid #eee; }
+        .dictionary-table th { background:var(--primary-color); color:white; }
+        .is-saved { background-color:var(--saved-color) !important; }
+        .word-en { font-weight:bold; color:var(--accent-color); direction:ltr; display:inline-block; }
+        .pagination { display:flex; justify-content:center; align-items:center; margin-top:20px; gap:10px; flex-wrap:wrap; }
+        .pagination button { padding:8px 16px; border:1px solid var(--accent-color); background:white; color:var(--accent-color); border-radius:5px; cursor:pointer; transition:.3s; }
+        .pagination button:hover:not(:disabled) { background:var(--accent-color); color:white; }
+        .pagination button:disabled { border-color:#ccc; color:#ccc; cursor:not-allowed; }
+        .pagination .current-info { font-weight:bold; color:var(--primary-color); }
+        #sync-status { position:fixed; bottom:20px; left:20px; padding:8px 14px; border-radius:20px; font-size:13px; font-weight:bold; opacity:0; pointer-events:none; transition:opacity .4s; z-index:999; }
+        #sync-status.saving { background:#fff3cd; color:#856404; border:1px solid #ffc107; opacity:1; }
+        #sync-status.saved  { background:#d4edda; color:#155724; border:1px solid #28a745; opacity:1; }
+        #sync-status.error  { background:#f8d7da; color:#721c24; border:1px solid #dc3545; opacity:1; }
     </style>
 </head>
-
 <body>
 
-    <div class="container">
-        <h1>القاموس الشامل</h1>
-        <p style="text-align: center; color: #666;">
-            إجمالي الكلمات: <span id="total-words">0</span> | المحفوظ: <span id="saved-count">0</span>
-        </p>
-
-        <input type="text" id="searchInput" class="search-box" placeholder="ابحث عن كلمة...">
-
-        <table class="dictionary-table">
-            <thead>
-                <tr>
-                    <th style="width: 50px;">حفظ</th>
-                    <th>الكلمة (English)</th>
-                    <th>المعنى (عربي)</th>
-                </tr>
-            </thead>
-            <tbody id="dictionaryBody"></tbody>
-        </table>
-
-        <div class="pagination">
-            <button id="prevBtn" onclick="changePage(-1)">السابق</button>
-            <span class="current-info">صفحة <span id="currentPage">1</span> من <span id="totalPages">1</span></span>
-            <button id="nextBtn" onclick="changePage(1)">التالي</button>
-        </div>
+<div class="container">
+    <h1>القاموس الشامل</h1>
+    <p style="text-align:center;color:#666;">
+        إجمالي الكلمات: <span id="total-words">0</span> | المحفوظ: <span id="saved-count">0</span>
+    </p>
+    <input type="text" id="searchInput" class="search-box" placeholder="ابحث عن كلمة...">
+    <table class="dictionary-table">
+        <thead>
+            <tr>
+                <th style="width:50px;">حفظ</th>
+                <th>الكلمة (English)</th>
+                <th>المعنى (عربي)</th>
+            </tr>
+        </thead>
+        <tbody id="dictionaryBody"></tbody>
+    </table>
+    <div class="pagination">
+        <button id="prevBtn" onclick="changePage(-1)">السابق</button>
+        <span class="current-info">صفحة <span id="currentPage">1</span> من <span id="totalPages">1</span></span>
+        <button id="nextBtn" onclick="changePage(1)">التالي</button>
     </div>
+</div>
+<div id="sync-status"></div>
 
-    <!-- Floating sync indicator (bottom-left, RTL-friendly) -->
-    <div id="sync-status">⏳ جارٍ الحفظ...</div>
+<script>
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON);
 
-    <script>
-        let dictionaryData = {};
-        let filteredKeys = [];
-        let savedWords = {};   // loaded from server on init
+// ── توليد معرّف مجهول من خصائص المتصفح (بديل الـ IP) ──────────────────────
+async function buildUserHash() {
+    const raw = [
+        navigator.userAgent,
+        navigator.language,
+        screen.width + 'x' + screen.height,
+        Intl.DateTimeFormat().resolvedOptions().timeZone,
+        navigator.hardwareConcurrency
+    ].join('|');
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,32);
+}
 
-        const wordsPerPage = 50;
-        let currentPage = 1;
+let dictionaryData={}, filteredKeys=[], savedWords={}, USER_HASH=null;
+const wordsPerPage=50; let currentPage=1;
+const dictionaryBody=document.getElementById('dictionaryBody');
+const currentPageSpan=document.getElementById('currentPage');
+const totalPagesSpan=document.getElementById('totalPages');
+const prevBtn=document.getElementById('prevBtn');
+const nextBtn=document.getElementById('nextBtn');
+const syncEl=document.getElementById('sync-status');
 
-        // ── DOM refs ──────────────────────────────────────────────────────────
-        const dictionaryBody  = document.getElementById('dictionaryBody');
-        const currentPageSpan = document.getElementById('currentPage');
-        const totalPagesSpan  = document.getElementById('totalPages');
-        const prevBtn         = document.getElementById('prevBtn');
-        const nextBtn         = document.getElementById('nextBtn');
-        const syncStatus      = document.getElementById('sync-status');
+let hideTimer=null;
+function showSync(state,msg){
+    syncEl.className=state; syncEl.textContent=msg; clearTimeout(hideTimer);
+    if(state!=='saving') hideTimer=setTimeout(()=>{syncEl.style.opacity='0';},2500);
+}
 
-        // ── Sync status helpers ───────────────────────────────────────────────
-        let hideTimer = null;
-        function showSync(state, msg) {
-            syncStatus.className = state;
-            syncStatus.textContent = msg;
-            clearTimeout(hideTimer);
-            if (state === 'saved' || state === 'error') {
-                hideTimer = setTimeout(() => { syncStatus.style.opacity = '0'; }, 2500);
-            }
-        }
+async function loadSavedFromDB(){
+    const {data,error}=await db.from('saved_words').select('words').eq('user_hash',USER_HASH).single();
+    if(error && error.code!=='PGRST116') console.warn('DB load error:',error.message);
+    savedWords=data?.words||{};
+}
 
-        // ── Server API ────────────────────────────────────────────────────────
+let saveTimer=null;
+function scheduleSave(){
+    showSync('saving','⏳ جارٍ الحفظ...');
+    clearTimeout(saveTimer);
+    saveTimer=setTimeout(async()=>{
+        const {error}=await db.from('saved_words').upsert(
+            {user_hash:USER_HASH, words:savedWords, updated_at:new Date().toISOString()},
+            {onConflict:'user_hash'}
+        );
+        if(error){ console.error(error.message); showSync('error','❌ فشل الحفظ'); }
+        else showSync('saved','✅ تم الحفظ');
+    },700);
+}
 
-        /** Load saved words from server (keyed by IP+UA on the server side) */
-        async function loadSavedFromServer() {
-            try {
-                const res = await fetch('/api/saved');
-                const data = await res.json();
-                savedWords = data.savedWords || {};
-            } catch (e) {
-                console.warn('Could not load saved words from server:', e);
-                savedWords = {};
-            }
-        }
+async function loadDictionary(){
+    USER_HASH=await buildUserHash();
+    await Promise.all([loadSavedFromDB(), fetchDictionary()]);
+    updateSavedCounter(); filterData('');
+}
 
-        /** Debounced persist – we batch rapid toggles into one request */
-        let saveTimer = null;
-        function scheduleSave() {
-            showSync('saving', '⏳ جارٍ الحفظ...');
-            clearTimeout(saveTimer);
-            saveTimer = setTimeout(async () => {
-                try {
-                    const res = await fetch('/api/saved', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ savedWords })
-                    });
-                    if (res.ok) {
-                        showSync('saved', '✅ تم الحفظ');
-                    } else {
-                        throw new Error('Server error');
-                    }
-                } catch (e) {
-                    showSync('error', '❌ فشل الحفظ');
-                }
-            }, 600); // wait 600 ms after the last toggle before sending
-        }
+async function fetchDictionary(){
+    try{
+        const res=await fetch('dictionary.json');
+        dictionaryData=await res.json();
+        document.getElementById('total-words').innerText=Object.keys(dictionaryData).length;
+    }catch(e){
+        dictionaryBody.innerHTML="<tr><td colspan='3'>خطأ في تحميل ملف القاموس.</td></tr>";
+    }
+}
 
-        // ── Dictionary loading ────────────────────────────────────────────────
-        async function loadDictionary() {
-            // Load saved words and dictionary in parallel
-            await Promise.all([loadSavedFromServer(), fetchDictionary()]);
-            updateSavedCounter();
-            filterData("");
-        }
+function filterData(query){
+    const q=query.toLowerCase().trim();
+    filteredKeys=Object.keys(dictionaryData).filter(en=>en.toLowerCase().includes(q)||dictionaryData[en].includes(q));
+    currentPage=1; renderPage();
+}
 
-        async function fetchDictionary() {
-            try {
-                const response = await fetch('dictionary.json');
-                dictionaryData = await response.json();
-                document.getElementById('total-words').innerText = Object.keys(dictionaryData).length;
-            } catch (e) {
-                dictionaryBody.innerHTML = "<tr><td colspan='3'>خطأ في تحميل الملف.</td></tr>";
-            }
-        }
+function renderPage(){
+    const start=( currentPage-1)*wordsPerPage;
+    const pageWords=filteredKeys.slice(start,start+wordsPerPage);
+    const totalPages=Math.ceil(filteredKeys.length/wordsPerPage);
+    dictionaryBody.innerHTML=pageWords.length
+        ? pageWords.map(en=>{
+            const safe=en.replace(/'/g,"\\'");
+            return `<tr id="row-${en}" class="${savedWords[en]?'is-saved':''}">
+                <td style="text-align:center;"><input type="checkbox" onchange="toggleSave('${safe}')" ${savedWords[en]?'checked':''}></td>
+                <td><span class="word-en">${en}</span></td>
+                <td>${dictionaryData[en]}</td>
+            </tr>`;
+        }).join('')
+        : "<tr><td colspan='3' style='text-align:center;'>لا توجد نتائج</td></tr>";
+    currentPageSpan.innerText=currentPage;
+    totalPagesSpan.innerText=totalPages||1;
+    prevBtn.disabled=currentPage===1;
+    nextBtn.disabled=currentPage===totalPages||totalPages===0;
+    window.scrollTo({top:0,behavior:'smooth'});
+}
 
-        // ── Filtering & rendering ─────────────────────────────────────────────
-        function filterData(query) {
-            const q = query.toLowerCase().trim();
-            filteredKeys = Object.keys(dictionaryData).filter(en =>
-                en.toLowerCase().includes(q) || dictionaryData[en].includes(q)
-            );
-            currentPage = 1;
-            renderPage();
-        }
+function changePage(step){ currentPage+=step; renderPage(); }
 
-        function renderPage() {
-            const start = (currentPage - 1) * wordsPerPage;
-            const end   = start + wordsPerPage;
-            const pageWords  = filteredKeys.slice(start, end);
-            const totalPages = Math.ceil(filteredKeys.length / wordsPerPage);
+function toggleSave(word){
+    if(savedWords[word]) delete savedWords[word]; else savedWords[word]=true;
+    const row=document.getElementById('row-'+word);
+    if(row) row.classList.toggle('is-saved',!!savedWords[word]);
+    updateSavedCounter(); scheduleSave();
+}
 
-            let html = "";
-            pageWords.forEach(en => {
-                const ar       = dictionaryData[en];
-                const checked  = savedWords[en] ? 'checked' : '';
-                const rowClass = savedWords[en] ? 'is-saved' : '';
-                // escape single quotes in word to be safe inside onclick
-                const safeEn = en.replace(/'/g, "\\'");
-                html += `
-                    <tr id="row-${en}" class="${rowClass}">
-                        <td style="text-align:center;">
-                            <input type="checkbox" onchange="toggleSave('${safeEn}')" ${checked}>
-                        </td>
-                        <td><span class="word-en">${en}</span></td>
-                        <td>${ar}</td>
-                    </tr>
-                `;
-            });
+function updateSavedCounter(){
+    document.getElementById('saved-count').innerText=Object.keys(savedWords).length;
+}
 
-            dictionaryBody.innerHTML = html || "<tr><td colspan='3' style='text-align:center;'>لا توجد نتائج</td></tr>";
-
-            currentPageSpan.innerText = currentPage;
-            totalPagesSpan.innerText  = totalPages || 1;
-            prevBtn.disabled = currentPage === 1;
-            nextBtn.disabled = currentPage === totalPages || totalPages === 0;
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function changePage(step) {
-            currentPage += step;
-            renderPage();
-        }
-
-        // ── Toggle a word ─────────────────────────────────────────────────────
-        function toggleSave(word) {
-            if (savedWords[word]) {
-                delete savedWords[word];
-            } else {
-                savedWords[word] = true;
-            }
-
-            const row = document.getElementById('row-' + word);
-            if (row) row.classList.toggle('is-saved', !!savedWords[word]);
-
-            updateSavedCounter();
-            scheduleSave(); // debounced server sync
-        }
-
-        function updateSavedCounter() {
-            document.getElementById('saved-count').innerText = Object.keys(savedWords).length;
-        }
-
-        // ── Search ────────────────────────────────────────────────────────────
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            filterData(e.target.value);
-        });
-
-        // ── Boot ──────────────────────────────────────────────────────────────
-        loadDictionary();
-    </script>
+document.getElementById('searchInput').addEventListener('input',e=>filterData(e.target.value));
+loadDictionary();
+</script>
 </body>
-
 </html>
