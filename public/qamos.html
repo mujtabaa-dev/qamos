@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>القاموس الشامل - نظام الصفحات</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --bg-color: #f4f7f6;
+            --saved-color: #e8f5e9;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 20px 0;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 18px;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .dictionary-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .dictionary-table th,
+        .dictionary-table td {
+            text-align: right;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .dictionary-table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .is-saved {
+            background-color: var(--saved-color) !important;
+        }
+
+        .word-en {
+            font-weight: bold;
+            color: var(--accent-color);
+            direction: ltr;
+            display: inline-block;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .pagination button {
+            padding: 8px 16px;
+            border: 1px solid var(--accent-color);
+            background: white;
+            color: var(--accent-color);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .pagination button:disabled {
+            border-color: #ccc;
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .pagination .current-info {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        /* Sync status indicator */
+        #sync-status {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            transition: opacity 0.5s;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        #sync-status.saving {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffc107;
+            opacity: 1;
+        }
+
+        #sync-status.saved {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #28a745;
+            opacity: 1;
+        }
+
+        #sync-status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #dc3545;
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>القاموس الشامل</h1>
+        <p style="text-align: center; color: #666;">
+            إجمالي الكلمات: <span id="total-words">0</span> | المحفوظ: <span id="saved-count">0</span>
+        </p>
+
+        <input type="text" id="searchInput" class="search-box" placeholder="ابحث عن كلمة...">
+
+        <table class="dictionary-table">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">حفظ</th>
+                    <th>الكلمة (English)</th>
+                    <th>المعنى (عربي)</th>
+                </tr>
+            </thead>
+            <tbody id="dictionaryBody"></tbody>
+        </table>
+
+        <div class="pagination">
+            <button id="prevBtn" onclick="changePage(-1)">السابق</button>
+            <span class="current-info">صفحة <span id="currentPage">1</span> من <span id="totalPages">1</span></span>
+            <button id="nextBtn" onclick="changePage(1)">التالي</button>
+        </div>
+    </div>
+
+    <!-- Floating sync indicator (bottom-left, RTL-friendly) -->
+    <div id="sync-status">⏳ جارٍ الحفظ...</div>
+
+    <script>
+        let dictionaryData = {};
+        let filteredKeys = [];
+        let savedWords = {};   // loaded from server on init
+
+        const wordsPerPage = 50;
+        let currentPage = 1;
+
+        // ── DOM refs ──────────────────────────────────────────────────────────
+        const dictionaryBody  = document.getElementById('dictionaryBody');
+        const currentPageSpan = document.getElementById('currentPage');
+        const totalPagesSpan  = document.getElementById('totalPages');
+        const prevBtn         = document.getElementById('prevBtn');
+        const nextBtn         = document.getElementById('nextBtn');
+        const syncStatus      = document.getElementById('sync-status');
+
+        // ── Sync status helpers ───────────────────────────────────────────────
+        let hideTimer = null;
+        function showSync(state, msg) {
+            syncStatus.className = state;
+            syncStatus.textContent = msg;
+            clearTimeout(hideTimer);
+            if (state === 'saved' || state === 'error') {
+                hideTimer = setTimeout(() => { syncStatus.style.opacity = '0'; }, 2500);
+            }
+        }
+
+        // ── Server API ────────────────────────────────────────────────────────
+
+        /** Load saved words from server (keyed by IP+UA on the server side) */
+        async function loadSavedFromServer() {
+            try {
+                const res = await fetch('/api/saved');
+                const data = await res.json();
+                savedWords = data.savedWords || {};
+            } catch (e) {
+                console.warn('Could not load saved words from server:', e);
+                savedWords = {};
+            }
+        }
+
+        /** Debounced persist – we batch rapid toggles into one request */
+        let saveTimer = null;
+        function scheduleSave() {
+            showSync('saving', '⏳ جارٍ الحفظ...');
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(async () => {
+                try {
+                    const res = await fetch('/api/saved', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ savedWords })
+                    });
+                    if (res.ok) {
+                        showSync('saved', '✅ تم الحفظ');
+                    } else {
+                        throw new Error('Server error');
+                    }
+                } catch (e) {
+                    showSync('error', '❌ فشل الحفظ');
+                }
+            }, 600); // wait 600 ms after the last toggle before sending
+        }
+
+        // ── Dictionary loading ────────────────────────────────────────────────
+        async function loadDictionary() {
+            // Load saved words and dictionary in parallel
+            await Promise.all([loadSavedFromServer(), fetchDictionary()]);
+            updateSavedCounter();
+            filterData("");
+        }
+
+        async function fetchDictionary() {
+            try {
+                const response = await fetch('dictionary.json');
+                dictionaryData = await response.json();
+                document.getElementById('total-words').innerText = Object.keys(dictionaryData).length;
+            } catch (e) {
+                dictionaryBody.innerHTML = "<tr><td colspan='3'>خطأ في تحميل الملف.</td></tr>";
+            }
+        }
+
+        // ── Filtering & rendering ─────────────────────────────────────────────
+        function filterData(query) {
+            const q = query.toLowerCase().trim();
+            filteredKeys = Object.keys(dictionaryData).filter(en =>
+                en.toLowerCase().includes(q) || dictionaryData[en].includes(q)
+            );
+            currentPage = 1;
+            renderPage();
+        }
+
+        function renderPage() {
+            const start = (currentPage - 1) * wordsPerPage;
+            const end   = start + wordsPerPage;
+            const pageWords  = filteredKeys.slice(start, end);
+            const totalPages = Math.ceil(filteredKeys.length / wordsPerPage);
+
+            let html = "";
+            pageWords.forEach(en => {
+                const ar       = dictionaryData[en];
+                const checked  = savedWords[en] ? 'checked' : '';
+                const rowClass = savedWords[en] ? 'is-saved' : '';
+                // escape single quotes in word to be safe inside onclick
+                const safeEn = en.replace(/'/g, "\\'");
+                html += `
+                    <tr id="row-${en}" class="${rowClass}">
+                        <td style="text-align:center;">
+                            <input type="checkbox" onchange="toggleSave('${safeEn}')" ${checked}>
+                        </td>
+                        <td><span class="word-en">${en}</span></td>
+                        <td>${ar}</td>
+                    </tr>
+                `;
+            });
+
+            dictionaryBody.innerHTML = html || "<tr><td colspan='3' style='text-align:center;'>لا توجد نتائج</td></tr>";
+
+            currentPageSpan.innerText = currentPage;
+            totalPagesSpan.innerText  = totalPages || 1;
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function changePage(step) {
+            currentPage += step;
+            renderPage();
+        }
+
+        // ── Toggle a word ─────────────────────────────────────────────────────
+        function toggleSave(word) {
+            if (savedWords[word]) {
+                delete savedWords[word];
+            } else {
+                savedWords[word] = true;
+            }
+
+            const row = document.getElementById('row-' + word);
+            if (row) row.classList.toggle('is-saved', !!savedWords[word]);
+
+            updateSavedCounter();
+            scheduleSave(); // debounced server sync
+        }
+
+        function updateSavedCounter() {
+            document.getElementById('saved-count').innerText = Object.keys(savedWords).length;
+        }
+
+        // ── Search ────────────────────────────────────────────────────────────
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            filterData(e.target.value);
+        });
+
+        // ── Boot ──────────────────────────────────────────────────────────────
+        loadDictionary();
+    </script>
+</body>
+
+</html>
