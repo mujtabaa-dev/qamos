@@ -6,77 +6,394 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>القاموس الشامل</title>
 
-
     <script>
-        const SUPABASE_URL  = 'https://uqeqtqefcpxhaoggywro.supabase.co';    // ← غيّر هذا
-        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxZXF0cWVmY3B4aGFvZ2d5d3JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzYwMTEsImV4cCI6MjA5MTg1MjAxMX0.00U5HDjQ4AfSf2B4lGIfKvq4wEpE9BJYf_giraJNikw'; // ← غيّر هذا
+        const SUPABASE_URL  = 'https://uqeqtqefcpxhaoggywro.supabase.co';
+        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxZXF0cWVmY3B4aGFvZ2d5d3JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzYwMTEsImV4cCI6MjA5MTg1MjAxMX0.00U5HDjQ4AfSf2B4lGIfKvq4wEpE9BJYf_giraJNikw';
     </script>
 
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --accent-color:  #3498db;
-            --bg-color:      #f4f7f6;
-            --saved-color:   #e8f5e9;
+            --ink:       #1a1a2e;
+            --deep:      #16213e;
+            --mid:       #0f3460;
+            --gold:      #c9a84c;
+            --gold-lt:   #e8c97a;
+            --cream:     #fdf8f0;
+            --parchment: #f5efe0;
+            --saved-bg:  #e8f5e9;
+            --saved-brd: #a5d6a7;
+            --text-main: #2d2d2d;
+            --text-sub:  #666;
+            --border:    #e0d8c8;
+            --shadow:    0 8px 40px rgba(15,52,96,.13);
         }
-        body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:var(--bg-color); margin:0; padding:20px; }
-        .container { max-width:900px; margin:0 auto; background:white; padding:30px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,.1); }
-        h1 { text-align:center; color:var(--primary-color); }
-        .search-box { width:100%; padding:12px 20px; margin:20px 0; border:2px solid #ddd; border-radius:25px; font-size:18px; outline:none; box-sizing:border-box; }
-        .dictionary-table { width:100%; border-collapse:collapse; }
-        .dictionary-table th,.dictionary-table td { text-align:right; padding:12px; border-bottom:1px solid #eee; }
-        .dictionary-table th { background:var(--primary-color); color:white; }
-        .is-saved { background-color:var(--saved-color) !important; }
-        .word-en { font-weight:bold; color:var(--accent-color); direction:ltr; display:inline-block; }
-        .pagination { display:flex; justify-content:center; align-items:center; margin-top:20px; gap:10px; flex-wrap:wrap; }
-        .pagination button { padding:8px 16px; border:1px solid var(--accent-color); background:white; color:var(--accent-color); border-radius:5px; cursor:pointer; transition:.3s; }
-        .pagination button:hover:not(:disabled) { background:var(--accent-color); color:white; }
-        .pagination button:disabled { border-color:#ccc; color:#ccc; cursor:not-allowed; }
-        .pagination .current-info { font-weight:bold; color:var(--primary-color); }
-        #sync-status { position:fixed; bottom:20px; left:20px; padding:8px 14px; border-radius:20px; font-size:13px; font-weight:bold; opacity:0; pointer-events:none; transition:opacity .4s; z-index:999; }
-        #sync-status.saving { background:#fff3cd; color:#856404; border:1px solid #ffc107; opacity:1; }
-        #sync-status.saved  { background:#d4edda; color:#155724; border:1px solid #28a745; opacity:1; }
-        #sync-status.error  { background:#f8d7da; color:#721c24; border:1px solid #dc3545; opacity:1; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--cream);
+            background-image:
+                radial-gradient(ellipse at 10% 0%, rgba(201,168,76,.10) 0%, transparent 55%),
+                radial-gradient(ellipse at 90% 100%, rgba(15,52,96,.08) 0%, transparent 55%);
+            min-height: 100vh;
+            color: var(--text-main);
+        }
+
+        /* ── Hero Header ── */
+        .hero {
+            background: linear-gradient(135deg, var(--ink) 0%, var(--mid) 60%, #1a4a7a 100%);
+            padding: 50px 30px 70px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute; inset: 0;
+            background-image:
+                repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(201,168,76,.07) 40px),
+                repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(201,168,76,.07) 40px);
+        }
+        .hero::after {
+            content: '📖';
+            position: absolute;
+            font-size: 280px;
+            opacity: .04;
+            top: -40px; left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+            filter: grayscale(1);
+        }
+        .hero-inner { position: relative; z-index: 1; }
+        .hero-badge {
+            display: inline-block;
+            border: 1px solid rgba(201,168,76,.5);
+            color: var(--gold-lt);
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            padding: 5px 18px;
+            border-radius: 30px;
+            margin-bottom: 18px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 300;
+        }
+        .hero h1 {
+            font-family: 'Amiri', serif;
+            font-size: clamp(2.4rem, 5vw, 4rem);
+            color: #fff;
+            letter-spacing: 2px;
+            line-height: 1.2;
+            margin-bottom: 6px;
+            text-shadow: 0 2px 20px rgba(0,0,0,.3);
+        }
+        .hero-sub {
+            color: rgba(255,255,255,.55);
+            font-size: 14px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        .hero-divider {
+            width: 60px; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            margin: 18px auto 0;
+        }
+
+        /* ── Stats Bar ── */
+        .stats-bar {
+            background: var(--deep);
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 16px 30px;
+            flex-wrap: wrap;
+        }
+        .stat-item { text-align: center; }
+        .stat-value { color: var(--gold); font-size: 20px; font-weight: 700; line-height: 1; }
+        .stat-label { color: rgba(255,255,255,.45); font-size: 11px; letter-spacing: 1px; margin-top: 3px; }
+
+        /* ── Main Container ── */
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 36px 24px 20px;
+        }
+
+        /* ── Search ── */
+        .search-wrap {
+            position: relative;
+            margin-bottom: 32px;
+        }
+        .search-icon {
+            position: absolute;
+            top: 50%; left: 20px;
+            transform: translateY(-50%);
+            color: var(--gold);
+            font-size: 18px;
+            pointer-events: none;
+        }
+        .search-box {
+            width: 100%;
+            padding: 16px 50px 16px 20px;
+            border: 2px solid var(--border);
+            border-radius: 50px;
+            font-size: 16px;
+            font-family: 'Cairo', sans-serif;
+            background: #fff;
+            color: var(--text-main);
+            outline: none;
+            transition: border-color .3s, box-shadow .3s;
+            box-shadow: 0 4px 20px rgba(0,0,0,.05);
+        }
+        .search-box:focus {
+            border-color: var(--gold);
+            box-shadow: 0 4px 24px rgba(201,168,76,.18);
+        }
+        .search-box::placeholder { color: #bbb; }
+
+        /* ── Table Card ── */
+        .table-card {
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+        .dictionary-table { width: 100%; border-collapse: collapse; }
+        .dictionary-table thead tr {
+            background: linear-gradient(90deg, var(--ink), var(--mid));
+        }
+        .dictionary-table th {
+            padding: 16px 20px;
+            color: rgba(255,255,255,.85);
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-align: right;
+        }
+        .dictionary-table th:first-child { text-align: center; width: 60px; }
+        .dictionary-table td {
+            padding: 13px 20px;
+            border-bottom: 1px solid #f0ebe0;
+            font-size: 15px;
+            transition: background .2s;
+        }
+        .dictionary-table td:first-child { text-align: center; }
+        .dictionary-table tbody tr:last-child td { border-bottom: none; }
+        .dictionary-table tbody tr:hover td { background: #fdf9f0; }
+        .dictionary-table tbody tr.is-saved { background-color: var(--saved-bg) !important; }
+        .dictionary-table tbody tr.is-saved td { border-bottom-color: var(--saved-brd); }
+
+        .word-en {
+            font-weight: 700;
+            color: var(--mid);
+            direction: ltr;
+            display: inline-block;
+            font-size: 14px;
+            letter-spacing: .4px;
+        }
+        .word-ar { color: var(--text-main); font-family: 'Cairo', sans-serif; }
+
+        /* ── Custom Checkbox ── */
+        .custom-cb { position: relative; display: inline-block; width: 22px; height: 22px; cursor: pointer; }
+        .custom-cb input { opacity: 0; width: 0; height: 0; }
+        .cb-mark {
+            position: absolute; inset: 0;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: #fff;
+            transition: all .2s;
+        }
+        .cb-mark::after {
+            content: '✓';
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%,-50%) scale(0);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            transition: transform .2s;
+        }
+        .custom-cb input:checked ~ .cb-mark {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            border-color: #27ae60;
+        }
+        .custom-cb input:checked ~ .cb-mark::after { transform: translate(-50%,-50%) scale(1); }
+
+        /* ── Empty State ── */
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-sub); }
+        .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: .4; }
+        .empty-state p { font-size: 16px; }
+
+        /* ── Pagination ── */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 28px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .pagination button {
+            padding: 10px 22px;
+            border: 2px solid var(--gold);
+            background: #fff;
+            color: var(--gold);
+            border-radius: 40px;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all .25s;
+        }
+        .pagination button:hover:not(:disabled) {
+            background: var(--gold);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(201,168,76,.35);
+        }
+        .pagination button:disabled { border-color: #ddd; color: #ccc; cursor: not-allowed; }
+        .pagination .page-info {
+            padding: 10px 22px;
+            background: var(--deep);
+            color: var(--gold-lt);
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* ── Footer ── */
+        footer {
+            text-align: center;
+            padding: 32px 20px 24px;
+            margin-top: 10px;
+        }
+        .footer-divider {
+            width: 80px; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            margin: 0 auto 20px;
+        }
+        .footer-copy {
+            color: var(--text-sub);
+            font-size: 13px;
+            letter-spacing: .5px;
+        }
+        .footer-copy .author {
+            color: var(--mid);
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .footer-copy .symbol { color: var(--gold); margin: 0 4px; }
+
+        /* ── Sync Toast ── */
+        #sync-status {
+            position: fixed;
+            bottom: 28px;
+            left: 28px;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'Cairo', sans-serif;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .4s, transform .4s;
+            transform: translateY(10px);
+            z-index: 999;
+            box-shadow: 0 4px 20px rgba(0,0,0,.15);
+        }
+        #sync-status.saving { background: #fff8e1; color: #795548; border: 1px solid #ffd54f; opacity: 1; transform: translateY(0); }
+        #sync-status.saved  { background: #e8f5e9; color: #2e7d32; border: 1px solid #66bb6a; opacity: 1; transform: translateY(0); }
+        #sync-status.error  { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; opacity: 1; transform: translateY(0); }
+
+        /* ── Animations ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .table-card { animation: fadeUp .5s ease both; }
+        .search-wrap { animation: fadeUp .4s .1s ease both; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>القاموس الشامل</h1>
-    <p style="text-align:center;color:#666;">
-        إجمالي الكلمات: <span id="total-words">0</span> | المحفوظ: <span id="saved-count">0</span>
-    </p>
-    <input type="text" id="searchInput" class="search-box" placeholder="ابحث عن كلمة...">
-    <table class="dictionary-table">
-        <thead>
-            <tr>
-                <th style="width:50px;">حفظ</th>
-                <th>الكلمة (English)</th>
-                <th>المعنى (عربي)</th>
-            </tr>
-        </thead>
-        <tbody id="dictionaryBody"></tbody>
-    </table>
-    <div class="pagination">
-        <button id="prevBtn" onclick="changePage(-1)">السابق</button>
-        <span class="current-info">صفحة <span id="currentPage">1</span> من <span id="totalPages">1</span></span>
-        <button id="nextBtn" onclick="changePage(1)">التالي</button>
+<!-- Hero -->
+<header class="hero">
+    <div class="hero-inner">
+        <div class="hero-badge">Arabic – English Dictionary</div>
+        <h1>القاموس الشامل</h1>
+        <p class="hero-sub">ابحث، تعلّم، واحفظ الكلمات بسهولة</p>
+        <div class="hero-divider"></div>
+    </div>
+</header>
+
+<!-- Stats -->
+<div class="stats-bar">
+    <div class="stat-item">
+        <div class="stat-value" id="total-words">0</div>
+        <div class="stat-label">إجمالي الكلمات</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-value" id="saved-count">0</div>
+        <div class="stat-label">محفوظ</div>
     </div>
 </div>
+
+<!-- Main -->
+<div class="container">
+    <!-- Search -->
+    <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" class="search-box" placeholder="ابحث عن كلمة بالعربية أو الإنجليزية...">
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+        <table class="dictionary-table">
+            <thead>
+                <tr>
+                    <th>حفظ</th>
+                    <th>الكلمة (English)</th>
+                    <th>المعنى (عربي)</th>
+                </tr>
+            </thead>
+            <tbody id="dictionaryBody"></tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination">
+        <button id="prevBtn" onclick="changePage(-1)">→ السابق</button>
+        <span class="page-info">صفحة <span id="currentPage">1</span> من <span id="totalPages">1</span></span>
+        <button id="nextBtn" onclick="changePage(1)">التالي ←</button>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer>
+    <div class="footer-divider"></div>
+    <div class="footer-copy">
+        <span class="symbol">©</span>
+        جميع الحقوق محفوظة لـ
+        <span class="author">Mujtaba Muhamed</span>
+        <span class="symbol">·</span>
+        <span id="footer-year"></span>
+    </div>
+</footer>
+
 <div id="sync-status"></div>
 
 <script>
+document.getElementById('footer-year').textContent = new Date().getFullYear();
+
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON);
 
-// ── توليد معرّف مجهول من خصائص المتصفح (بديل الـ IP) ──────────────────────
 async function buildUserHash() {
     const raw = [
-        navigator.userAgent,
-        navigator.language,
+        navigator.userAgent, navigator.language,
         screen.width + 'x' + screen.height,
         Intl.DateTimeFormat().resolvedOptions().timeZone,
         navigator.hardwareConcurrency
@@ -97,7 +414,7 @@ const syncEl=document.getElementById('sync-status');
 let hideTimer=null;
 function showSync(state,msg){
     syncEl.className=state; syncEl.textContent=msg; clearTimeout(hideTimer);
-    if(state!=='saving') hideTimer=setTimeout(()=>{syncEl.style.opacity='0';},2500);
+    if(state!=='saving') hideTimer=setTimeout(()=>{ syncEl.style.opacity='0'; syncEl.style.transform='translateY(10px)'; },2500);
 }
 
 async function loadSavedFromDB(){
@@ -130,32 +447,53 @@ async function fetchDictionary(){
     try{
         const res=await fetch('dictionary.json');
         dictionaryData=await res.json();
-        document.getElementById('total-words').innerText=Object.keys(dictionaryData).length;
+        document.getElementById('total-words').innerText=Object.keys(dictionaryData).length.toLocaleString('ar');
     }catch(e){
-        dictionaryBody.innerHTML="<tr><td colspan='3'>خطأ في تحميل ملف القاموس.</td></tr>";
+        dictionaryBody.innerHTML=`<tr><td colspan='3'>
+            <div class="empty-state">
+                <div class="empty-icon">📂</div>
+                <p>خطأ في تحميل ملف القاموس.</p>
+            </div>
+        </td></tr>`;
     }
 }
 
 function filterData(query){
     const q=query.toLowerCase().trim();
-    filteredKeys=Object.keys(dictionaryData).filter(en=>en.toLowerCase().includes(q)||dictionaryData[en].includes(q));
+    filteredKeys=Object.keys(dictionaryData).filter(en=>
+        en.toLowerCase().includes(q)||dictionaryData[en].includes(q)
+    );
     currentPage=1; renderPage();
 }
 
 function renderPage(){
-    const start=( currentPage-1)*wordsPerPage;
+    const start=(currentPage-1)*wordsPerPage;
     const pageWords=filteredKeys.slice(start,start+wordsPerPage);
     const totalPages=Math.ceil(filteredKeys.length/wordsPerPage);
-    dictionaryBody.innerHTML=pageWords.length
-        ? pageWords.map(en=>{
+
+    if(!pageWords.length){
+        dictionaryBody.innerHTML=`<tr><td colspan='3'>
+            <div class="empty-state">
+                <div class="empty-icon">🔎</div>
+                <p>لا توجد نتائج مطابقة للبحث</p>
+            </div>
+        </td></tr>`;
+    } else {
+        dictionaryBody.innerHTML=pageWords.map(en=>{
             const safe=en.replace(/'/g,"\\'");
-            return `<tr id="row-${en}" class="${savedWords[en]?'is-saved':''}">
-                <td style="text-align:center;"><input type="checkbox" onchange="toggleSave('${safe}')" ${savedWords[en]?'checked':''}></td>
+            return `<tr id="row-${CSS.escape(en)}" class="${savedWords[en]?'is-saved':''}">
+                <td>
+                    <label class="custom-cb">
+                        <input type="checkbox" onchange="toggleSave('${safe}')" ${savedWords[en]?'checked':''}>
+                        <span class="cb-mark"></span>
+                    </label>
+                </td>
                 <td><span class="word-en">${en}</span></td>
-                <td>${dictionaryData[en]}</td>
+                <td class="word-ar">${dictionaryData[en]}</td>
             </tr>`;
-        }).join('')
-        : "<tr><td colspan='3' style='text-align:center;'>لا توجد نتائج</td></tr>";
+        }).join('');
+    }
+
     currentPageSpan.innerText=currentPage;
     totalPagesSpan.innerText=totalPages||1;
     prevBtn.disabled=currentPage===1;
@@ -167,13 +505,13 @@ function changePage(step){ currentPage+=step; renderPage(); }
 
 function toggleSave(word){
     if(savedWords[word]) delete savedWords[word]; else savedWords[word]=true;
-    const row=document.getElementById('row-'+word);
+    const row=document.getElementById('row-'+CSS.escape(word));
     if(row) row.classList.toggle('is-saved',!!savedWords[word]);
     updateSavedCounter(); scheduleSave();
 }
 
 function updateSavedCounter(){
-    document.getElementById('saved-count').innerText=Object.keys(savedWords).length;
+    document.getElementById('saved-count').innerText=Object.keys(savedWords).length.toLocaleString('ar');
 }
 
 document.getElementById('searchInput').addEventListener('input',e=>filterData(e.target.value));
