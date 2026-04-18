@@ -12,7 +12,30 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public'))); // serves qamos.html & dictionary.json
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
+// ── Supabase Visitor Logger ────────────────────────────────────────────────
+const { createClient } = require('@supabase/supabase-js');
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
+async function logVisit(req) {
+  try {
+    const ip =
+      req.headers['x-forwarded-for']?.split(',')[0].trim() ||
+      req.headers['x-real-ip'] ||
+      req.socket.remoteAddress || 'unknown';
+
+    await supabase.from('visits').insert({ ip_address: ip });
+  } catch (err) {
+    // فشل التسجيل لن يعطل الموقع أبداً
+    console.error('⚠️ خطأ تسجيل زيارة:', err.message);
+  }
+}
+
+// تشغيل السجل في الخلفية (Non-blocking)
+app.use((req, res, next) => {
+  logVisit(req);
+  next();
+});
+// ─────────────────────────────────────────────────────────────────────────────
 /** Read the entire store from disk (returns {} on first run) */
 function readStore() {
     try {
