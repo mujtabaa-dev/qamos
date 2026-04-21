@@ -15,6 +15,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 
     <style>
+        /* ═══════════════════════════════════════════════
+           CSS Variables – Light Theme (Default)
+        ═══════════════════════════════════════════════ */
         :root {
             --ink:       #1a1a2e;
             --deep:      #16213e;
@@ -29,6 +32,36 @@
             --text-sub:  #666;
             --border:    #e0d8c8;
             --shadow:    0 8px 40px rgba(15,52,96,.13);
+            --card-bg:   #fff;
+            --row-hover: #fdf9f0;
+            --search-bg: #fff;
+            --input-bg:  #fff;
+            --tab-bg:    #f0ebe0;
+            --tab-active-bg: #fff;
+            --modal-overlay: rgba(0,0,0,.45);
+            --highlight: #fff3cd;
+        }
+
+        /* ═══════════════════════════════════════════════
+           Dark Theme
+        ═══════════════════════════════════════════════ */
+        [data-theme="dark"] {
+            --cream:     #0f0f1a;
+            --parchment: #1a1a2e;
+            --saved-bg:  #1a3a1a;
+            --saved-brd: #2e7d32;
+            --text-main: #e0e0e0;
+            --text-sub:  #aaa;
+            --border:    #2a2a3e;
+            --shadow:    0 8px 40px rgba(0,0,0,.4);
+            --card-bg:   #1a1a2e;
+            --row-hover: #222240;
+            --search-bg: #1a1a2e;
+            --input-bg:  #222240;
+            --tab-bg:    #222240;
+            --tab-active-bg: #2a2a4a;
+            --modal-overlay: rgba(0,0,0,.7);
+            --highlight: #3a3500;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -41,6 +74,7 @@
                 radial-gradient(ellipse at 90% 100%, rgba(15,52,96,.08) 0%, transparent 55%);
             min-height: 100vh;
             color: var(--text-main);
+            transition: background .4s, color .4s;
         }
 
         /* ── Hero Header ── */
@@ -59,7 +93,7 @@
                 repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(201,168,76,.07) 40px);
         }
         .hero::after {
-            content: '📖';
+            content: '\01F4D6';
             position: absolute;
             font-size: 280px;
             opacity: .04;
@@ -103,6 +137,29 @@
             margin: 18px auto 0;
         }
 
+        /* ── Dark Mode Toggle ── */
+        .theme-toggle {
+            position: absolute;
+            top: 18px;
+            left: 18px;
+            z-index: 10;
+            background: rgba(255,255,255,.12);
+            border: 1px solid rgba(201,168,76,.3);
+            color: var(--gold-lt);
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .3s;
+        }
+        .theme-toggle:hover {
+            background: rgba(201,168,76,.25);
+            transform: rotate(20deg) scale(1.1);
+        }
+
         /* ── Stats Bar ── */
         .stats-bar {
             background: var(--deep);
@@ -126,7 +183,7 @@
         /* ── Search ── */
         .search-wrap {
             position: relative;
-            margin-bottom: 32px;
+            margin-bottom: 20px;
         }
         .search-icon {
             position: absolute;
@@ -138,15 +195,15 @@
         }
         .search-box {
             width: 100%;
-            padding: 16px 50px 16px 20px;
+            padding: 16px 130px 16px 20px;
             border: 2px solid var(--border);
             border-radius: 50px;
             font-size: 16px;
             font-family: 'Cairo', sans-serif;
-            background: #fff;
+            background: var(--input-bg);
             color: var(--text-main);
             outline: none;
-            transition: border-color .3s, box-shadow .3s;
+            transition: border-color .3s, box-shadow .3s, background .4s;
             box-shadow: 0 4px 20px rgba(0,0,0,.05);
         }
         .search-box:focus {
@@ -154,14 +211,93 @@
             box-shadow: 0 4px 24px rgba(201,168,76,.18);
         }
         .search-box::placeholder { color: #bbb; }
+        .search-shortcut {
+            position: absolute;
+            top: 50%; right: 20px;
+            transform: translateY(-50%);
+            background: var(--tab-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-size: 11px;
+            color: var(--text-sub);
+            pointer-events: none;
+            font-family: monospace;
+            transition: opacity .3s;
+        }
+        .search-box:focus ~ .search-shortcut { opacity: 0; }
+
+        /* ── Filter Tabs & Result Count ── */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .filter-tabs {
+            display: flex;
+            gap: 0;
+            background: var(--tab-bg);
+            border-radius: 40px;
+            padding: 4px;
+            border: 1px solid var(--border);
+        }
+        .filter-tab {
+            padding: 8px 22px;
+            border: none;
+            background: transparent;
+            color: var(--text-sub);
+            font-family: 'Cairo', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 36px;
+            cursor: pointer;
+            transition: all .25s;
+        }
+        .filter-tab.active {
+            background: var(--tab-active-bg);
+            color: var(--gold);
+            box-shadow: 0 2px 10px rgba(201,168,76,.15);
+        }
+        .filter-tab:hover:not(.active) { color: var(--text-main); }
+        .result-count {
+            font-size: 13px;
+            color: var(--text-sub);
+            font-weight: 600;
+        }
+
+        /* ── Export Button ── */
+        .export-btn {
+            padding: 8px 20px;
+            border: 2px solid var(--gold);
+            background: transparent;
+            color: var(--gold);
+            border-radius: 40px;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all .25s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .export-btn:hover {
+            background: var(--gold);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(201,168,76,.35);
+        }
 
         /* ── Table Card ── */
         .table-card {
-            background: #fff;
+            background: var(--card-bg);
             border-radius: 16px;
             overflow: hidden;
             box-shadow: var(--shadow);
             border: 1px solid var(--border);
+            transition: background .4s, border-color .4s;
         }
         .dictionary-table { width: 100%; border-collapse: collapse; }
         .dictionary-table thead tr {
@@ -176,15 +312,17 @@
             text-align: right;
         }
         .dictionary-table th:first-child { text-align: center; width: 60px; }
+        .dictionary-table th:nth-child(2) { width: 60px; } /* pronounce column */
         .dictionary-table td {
             padding: 13px 20px;
-            border-bottom: 1px solid #f0ebe0;
+            border-bottom: 1px solid var(--border);
             font-size: 15px;
             transition: background .2s;
         }
         .dictionary-table td:first-child { text-align: center; }
+        .dictionary-table td:nth-child(2) { text-align: center; }
         .dictionary-table tbody tr:last-child td { border-bottom: none; }
-        .dictionary-table tbody tr:hover td { background: #fdf9f0; }
+        .dictionary-table tbody tr:hover td { background: var(--row-hover); }
         .dictionary-table tbody tr.is-saved { background-color: var(--saved-bg) !important; }
         .dictionary-table tbody tr.is-saved td { border-bottom-color: var(--saved-brd); }
 
@@ -196,7 +334,28 @@
             font-size: 14px;
             letter-spacing: .4px;
         }
+        [data-theme="dark"] .word-en { color: var(--gold-lt); }
         .word-ar { color: var(--text-main); font-family: 'Cairo', sans-serif; }
+
+        /* ── Highlight ── */
+        mark.search-hl {
+            background: var(--highlight);
+            color: inherit;
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+
+        /* ── Pronounce Button ── */
+        .pronounce-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            opacity: .5;
+            transition: opacity .2s, transform .2s;
+            padding: 4px;
+        }
+        .pronounce-btn:hover { opacity: 1; transform: scale(1.2); }
 
         /* ── Custom Checkbox ── */
         .custom-cb { position: relative; display: inline-block; width: 22px; height: 22px; cursor: pointer; }
@@ -205,11 +364,11 @@
             position: absolute; inset: 0;
             border: 2px solid #ddd;
             border-radius: 6px;
-            background: #fff;
+            background: var(--input-bg);
             transition: all .2s;
         }
         .cb-mark::after {
-            content: '✓';
+            content: '\2713';
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%,-50%) scale(0);
             color: #fff;
@@ -249,6 +408,7 @@
             font-weight: 600;
             transition: all .25s;
         }
+        [data-theme="dark"] .pagination button { background: var(--card-bg); }
         .pagination button:hover:not(:disabled) {
             background: var(--gold);
             color: #fff;
@@ -263,6 +423,30 @@
             font-size: 13px;
             font-weight: 600;
         }
+
+        /* ── Back to Top ── */
+        .back-to-top {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold), var(--gold-lt));
+            color: #fff;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(201,168,76,.4);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity .3s, transform .3s;
+            z-index: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .back-to-top.visible { opacity: 1; transform: translateY(0); }
+        .back-to-top:hover { transform: translateY(-3px); box-shadow: 0 6px 24px rgba(201,168,76,.5); }
 
         /* ── Footer ── */
         footer {
@@ -315,14 +499,42 @@
         }
         .table-card { animation: fadeUp .5s ease both; }
         .search-wrap { animation: fadeUp .4s .1s ease both; }
+        .toolbar { animation: fadeUp .4s .15s ease both; }
+
+        @keyframes rowFadeIn {
+            from { opacity: 0; transform: translateX(10px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        .dictionary-table tbody tr {
+            animation: rowFadeIn .3s ease both;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            .hero { padding: 40px 16px 55px; }
+            .hero h1 { font-size: 2rem; }
+            .stats-bar { gap: 20px; padding: 12px 16px; }
+            .container { padding: 20px 12px 16px; }
+            .search-box { padding: 14px 50px 14px 16px; font-size: 15px; }
+            .search-shortcut { display: none; }
+            .dictionary-table th, .dictionary-table td { padding: 10px 12px; font-size: 13px; }
+            .toolbar { gap: 8px; }
+            .filter-tab { padding: 6px 14px; font-size: 12px; }
+            .export-btn { padding: 6px 14px; font-size: 12px; }
+            .pagination button { padding: 8px 16px; font-size: 13px; }
+            .back-to-top { width: 42px; height: 42px; bottom: 20px; right: 16px; font-size: 18px; }
+        }
     </style>
 </head>
 <body>
 
 <!-- Hero -->
 <header class="hero">
+    <button class="theme-toggle" id="themeToggle" title="تبديل الوضع الداكن" aria-label="تبديل الوضع الداكن">
+        <span id="themeIcon">&#127769;</span>
+    </button>
     <div class="hero-inner">
-        <div class="hero-badge">Arabic – English Dictionary</div>
+        <div class="hero-badge">Arabic - English Dictionary</div>
         <h1>القاموس الشامل</h1>
         <p class="hero-sub">ابحث، تعلّم، واحفظ الكلمات بسهولة</p>
         <div class="hero-divider"></div>
@@ -345,8 +557,23 @@
 <div class="container">
     <!-- Search -->
     <div class="search-wrap">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" class="search-box" placeholder="ابحث عن كلمة بالعربية أو الإنجليزية...">
+        <span class="search-icon">&#128269;</span>
+        <input type="text" id="searchInput" class="search-box" placeholder="ابحث عن كلمة بالعربية أو الإنجليزية..." autocomplete="off">
+        <span class="search-shortcut">Ctrl+K</span>
+    </div>
+
+    <!-- Toolbar: Filter Tabs + Export -->
+    <div class="toolbar">
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all" onclick="setFilter('all')">الكل</button>
+                <button class="filter-tab" data-filter="saved" onclick="setFilter('saved')">المحفوظ</button>
+            </div>
+            <span class="result-count" id="resultCount"></span>
+        </div>
+        <button class="export-btn" id="exportBtn" onclick="exportSaved()" title="تصدير الكلمات المحفوظة">
+            <span>&#128229;</span> تصدير
+        </button>
     </div>
 
     <!-- Table -->
@@ -355,6 +582,7 @@
             <thead>
                 <tr>
                     <th>حفظ</th>
+                    <th>&#128266;</th>
                     <th>الكلمة (English)</th>
                     <th>المعنى (عربي)</th>
                 </tr>
@@ -365,20 +593,23 @@
 
     <!-- Pagination -->
     <div class="pagination">
-        <button id="prevBtn" onclick="changePage(-1)">→ السابق</button>
+        <button id="prevBtn" onclick="changePage(-1)">&#8594; السابق</button>
         <span class="page-info">صفحة <span id="currentPage">1</span> من <span id="totalPages">1</span></span>
-        <button id="nextBtn" onclick="changePage(1)">التالي ←</button>
+        <button id="nextBtn" onclick="changePage(1)">التالي &#8592;</button>
     </div>
 </div>
+
+<!-- Back to Top -->
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="العودة للأعلى" aria-label="العودة للأعلى">&#8593;</button>
 
 <!-- Footer -->
 <footer>
     <div class="footer-divider"></div>
     <div class="footer-copy">
-        <span class="symbol">©</span>
+        <span class="symbol">&copy;</span>
         جميع الحقوق محفوظة لـ
         <span class="author">Mujtaba Muhamed</span>
-        <span class="symbol">·</span>
+        <span class="symbol">&middot;</span>
         <span id="footer-year"></span>
     </div>
 </footer>
@@ -386,6 +617,35 @@
 <div id="sync-status"></div>
 
 <script>
+/* ═══════════════════════════════════════════════
+   Dark Mode
+═══════════════════════════════════════════════ */
+(function initTheme() {
+    const saved = localStorage.getItem('qamos-theme');
+    if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    updateThemeIcon();
+})();
+
+function updateThemeIcon() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.getElementById('themeIcon').innerHTML = isDark ? '&#9728;' : '&#127769;';
+}
+
+document.getElementById('themeToggle').addEventListener('click', () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('qamos-theme', 'light');
+    } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('qamos-theme', 'dark');
+    }
+    updateThemeIcon();
+});
+
+/* ═══════════════════════════════════════════════
+   Core Variables
+═══════════════════════════════════════════════ */
 document.getElementById('footer-year').textContent = new Date().getFullYear();
 
 const { createClient } = supabase;
@@ -404,19 +664,52 @@ async function buildUserHash() {
 
 let dictionaryData={}, filteredKeys=[], savedWords={}, USER_HASH=null;
 const wordsPerPage=50; let currentPage=1;
+let currentFilter='all'; // 'all' or 'saved'
+let currentQuery='';
+
 const dictionaryBody=document.getElementById('dictionaryBody');
 const currentPageSpan=document.getElementById('currentPage');
 const totalPagesSpan=document.getElementById('totalPages');
 const prevBtn=document.getElementById('prevBtn');
 const nextBtn=document.getElementById('nextBtn');
 const syncEl=document.getElementById('sync-status');
+const resultCountEl=document.getElementById('resultCount');
 
+/* ═══════════════════════════════════════════════
+   Back to Top Button
+═══════════════════════════════════════════════ */
+const backToTopBtn = document.getElementById('backToTop');
+window.addEventListener('scroll', () => {
+    backToTopBtn.classList.toggle('visible', window.scrollY > 400);
+}, { passive: true });
+
+/* ═══════════════════════════════════════════════
+   Keyboard Shortcuts
+═══════════════════════════════════════════════ */
+document.addEventListener('keydown', (e) => {
+    // Ctrl+K / Cmd+K => focus search
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        document.getElementById('searchInput').focus();
+    }
+    // Escape => blur search
+    if (e.key === 'Escape') {
+        document.getElementById('searchInput').blur();
+    }
+});
+
+/* ═══════════════════════════════════════════════
+   Sync Toast
+═══════════════════════════════════════════════ */
 let hideTimer=null;
 function showSync(state,msg){
     syncEl.className=state; syncEl.textContent=msg; clearTimeout(hideTimer);
     if(state!=='saving') hideTimer=setTimeout(()=>{ syncEl.style.opacity='0'; syncEl.style.transform='translateY(10px)'; },2500);
 }
 
+/* ═══════════════════════════════════════════════
+   Supabase Save/Load
+═══════════════════════════════════════════════ */
 async function loadSavedFromDB(){
     const {data,error}=await db.from('saved_words').select('words').eq('user_hash',USER_HASH).single();
     if(error && error.code!=='PGRST116') console.warn('DB load error:',error.message);
@@ -425,22 +718,25 @@ async function loadSavedFromDB(){
 
 let saveTimer=null;
 function scheduleSave(){
-    showSync('saving','⏳ جارٍ الحفظ...');
+    showSync('saving','\u23F3 جارٍ الحفظ...');
     clearTimeout(saveTimer);
     saveTimer=setTimeout(async()=>{
         const {error}=await db.from('saved_words').upsert(
             {user_hash:USER_HASH, words:savedWords, updated_at:new Date().toISOString()},
             {onConflict:'user_hash'}
         );
-        if(error){ console.error(error.message); showSync('error','❌ فشل الحفظ'); }
-        else showSync('saved','✅ تم الحفظ');
+        if(error){ console.error(error.message); showSync('error','\u274C فشل الحفظ'); }
+        else showSync('saved','\u2705 تم الحفظ');
     },700);
 }
 
+/* ═══════════════════════════════════════════════
+   Load Dictionary
+═══════════════════════════════════════════════ */
 async function loadDictionary(){
     USER_HASH=await buildUserHash();
     await Promise.all([loadSavedFromDB(), fetchDictionary()]);
-    updateSavedCounter(); filterData('');
+    updateSavedCounter(); applyFilter();
 }
 
 async function fetchDictionary(){
@@ -449,47 +745,114 @@ async function fetchDictionary(){
         dictionaryData=await res.json();
         document.getElementById('total-words').innerText=Object.keys(dictionaryData).length.toLocaleString('ar');
     }catch(e){
-        dictionaryBody.innerHTML=`<tr><td colspan='3'>
+        dictionaryBody.innerHTML=`<tr><td colspan='4'>
             <div class="empty-state">
-                <div class="empty-icon">📂</div>
+                <div class="empty-icon">&#128194;</div>
                 <p>خطأ في تحميل ملف القاموس.</p>
             </div>
         </td></tr>`;
     }
 }
 
-function filterData(query){
-    const q=query.toLowerCase().trim();
-    filteredKeys=Object.keys(dictionaryData).filter(en=>
-        en.toLowerCase().includes(q)||dictionaryData[en].includes(q)
-    );
-    currentPage=1; renderPage();
+/* ═══════════════════════════════════════════════
+   Search with Debounce & Highlighting
+═══════════════════════════════════════════════ */
+let debounceTimer = null;
+document.getElementById('searchInput').addEventListener('input', (e) => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+        currentQuery = e.target.value;
+        applyFilter();
+    }, 250);
+});
+
+function applyFilter() {
+    const q = currentQuery.toLowerCase().trim();
+    let keys = Object.keys(dictionaryData);
+
+    // Search filter
+    if (q) {
+        keys = keys.filter(en =>
+            en.toLowerCase().includes(q) || dictionaryData[en].includes(q)
+        );
+    }
+
+    // Saved filter
+    if (currentFilter === 'saved') {
+        keys = keys.filter(en => savedWords[en]);
+    }
+
+    filteredKeys = keys;
+    currentPage = 1;
+    renderPage();
 }
 
+function setFilter(filter) {
+    currentFilter = filter;
+    // Update tab UI
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.filter === filter);
+    });
+    applyFilter();
+}
+
+/* ═══════════════════════════════════════════════
+   Highlight matching text
+═══════════════════════════════════════════════ */
+function highlightText(text, query) {
+    if (!query) return escapeHTML(text);
+    const escaped = escapeHTML(text);
+    const q = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${q})`, 'gi');
+    return escaped.replace(regex, '<mark class="search-hl">$1</mark>');
+}
+
+function escapeHTML(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+/* ═══════════════════════════════════════════════
+   Render Page
+═══════════════════════════════════════════════ */
 function renderPage(){
     const start=(currentPage-1)*wordsPerPage;
     const pageWords=filteredKeys.slice(start,start+wordsPerPage);
     const totalPages=Math.ceil(filteredKeys.length/wordsPerPage);
+    const q = currentQuery.toLowerCase().trim();
+
+    // Update result count
+    if (q || currentFilter === 'saved') {
+        resultCountEl.textContent = `${filteredKeys.length.toLocaleString('ar')} نتيجة`;
+    } else {
+        resultCountEl.textContent = '';
+    }
 
     if(!pageWords.length){
-        dictionaryBody.innerHTML=`<tr><td colspan='3'>
+        const msg = currentFilter === 'saved' ? 'لا توجد كلمات محفوظة بعد' : 'لا توجد نتائج مطابقة للبحث';
+        const icon = currentFilter === 'saved' ? '&#128278;' : '&#128270;';
+        dictionaryBody.innerHTML=`<tr><td colspan='4'>
             <div class="empty-state">
-                <div class="empty-icon">🔎</div>
-                <p>لا توجد نتائج مطابقة للبحث</p>
+                <div class="empty-icon">${icon}</div>
+                <p>${msg}</p>
             </div>
         </td></tr>`;
     } else {
-        dictionaryBody.innerHTML=pageWords.map(en=>{
+        dictionaryBody.innerHTML=pageWords.map((en, idx) => {
             const safe=en.replace(/'/g,"\\'");
-            return `<tr id="row-${CSS.escape(en)}" class="${savedWords[en]?'is-saved':''}">
+            return `<tr id="row-${CSS.escape(en)}" class="${savedWords[en]?'is-saved':''}" style="animation-delay:${idx*0.02}s">
                 <td>
                     <label class="custom-cb">
                         <input type="checkbox" onchange="toggleSave('${safe}')" ${savedWords[en]?'checked':''}>
                         <span class="cb-mark"></span>
                     </label>
                 </td>
-                <td><span class="word-en">${en}</span></td>
-                <td class="word-ar">${dictionaryData[en]}</td>
+                <td>
+                    <button class="pronounce-btn" onclick="pronounceWord('${safe}')" title="انطق الكلمة" aria-label="انطق ${escapeHTML(en)}">&#128266;</button>
+                </td>
+                <td><span class="word-en">${highlightText(en, q)}</span></td>
+                <td class="word-ar">${highlightText(dictionaryData[en], q)}</td>
             </tr>`;
         }).join('');
     }
@@ -498,23 +861,80 @@ function renderPage(){
     totalPagesSpan.innerText=totalPages||1;
     prevBtn.disabled=currentPage===1;
     nextBtn.disabled=currentPage===totalPages||totalPages===0;
-    window.scrollTo({top:0,behavior:'smooth'});
 }
 
-function changePage(step){ currentPage+=step; renderPage(); }
+function changePage(step){ currentPage+=step; renderPage(); window.scrollTo({top:0,behavior:'smooth'}); }
 
+/* ═══════════════════════════════════════════════
+   Toggle Save
+═══════════════════════════════════════════════ */
 function toggleSave(word){
     if(savedWords[word]) delete savedWords[word]; else savedWords[word]=true;
     const row=document.getElementById('row-'+CSS.escape(word));
     if(row) row.classList.toggle('is-saved',!!savedWords[word]);
+    const cb = row?.querySelector('input[type="checkbox"]');
+    if (cb) cb.checked = !!savedWords[word];
     updateSavedCounter(); scheduleSave();
+
+    // If we're in "saved" filter and we just unsaved a word, re-apply filter
+    if (currentFilter === 'saved' && !savedWords[word]) {
+        applyFilter();
+    }
 }
 
 function updateSavedCounter(){
     document.getElementById('saved-count').innerText=Object.keys(savedWords).length.toLocaleString('ar');
 }
 
-document.getElementById('searchInput').addEventListener('input',e=>filterData(e.target.value));
+/* ═══════════════════════════════════════════════
+   Text-to-Speech (Pronunciation)
+═══════════════════════════════════════════════ */
+function pronounceWord(word) {
+    if (!('speechSynthesis' in window)) {
+        showSync('error', 'المتصفح لا يدعم النطق');
+        return;
+    }
+    window.speechSynthesis.cancel(); // stop any ongoing speech
+    const utterance = new SpeechSynthesisUtterance(word);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.85;
+    utterance.pitch = 1;
+    window.speechSynthesis.speak(utterance);
+}
+
+/* ═══════════════════════════════════════════════
+   Export Saved Words
+═══════════════════════════════════════════════ */
+function exportSaved() {
+    const keys = Object.keys(savedWords);
+    if (!keys.length) {
+        showSync('error', '\u26A0 لا توجد كلمات محفوظة للتصدير');
+        return;
+    }
+
+    let content = '\u0627\u0644\u0643\u0644\u0645\u0627\u062A \u0627\u0644\u0645\u062D\u0641\u0648\u0638\u0629 - \u0627\u0644\u0642\u0627\u0645\u0648\u0633 \u0627\u0644\u0634\u0627\u0645\u0644\n'; // الكلمات المحفوظة - القاموس الشامل
+    content += '\u2550'.repeat(50) + '\n\n';
+
+    keys.forEach((en, i) => {
+        const ar = dictionaryData[en] || '---';
+        content += `${i + 1}. ${en}  =  ${ar}\n`;
+    });
+
+    content += `\n\n\u0625\u062C\u0645\u0627\u0644\u064A: ${keys.length} \u0643\u0644\u0645\u0629`; // إجمالي: X كلمة
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'saved_words.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+    showSync('saved', '\u2705 \u062A\u0645 \u062A\u0635\u062F\u064A\u0631 \u0627\u0644\u0643\u0644\u0645\u0627\u062A'); // ✅ تم تصدير الكلمات
+}
+
+/* ═══════════════════════════════════════════════
+   Init
+═══════════════════════════════════════════════ */
 loadDictionary();
 </script>
 </body>
